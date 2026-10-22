@@ -1,0 +1,202 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="description" content="Sails Developer Toolkit — an open-source developer toolkit for building smart contracts on Vara Network with Sails.">
+  <title>Sails Developer Toolkit — Build on Vara</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0d10;
+      --panel: #12161c;
+      --text: #f3f5f7;
+      --muted: #a1aab7;
+      --green: #a8f56a;
+      --border: #29313b;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(1100px, 90%); margin: auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+    }
+    nav { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { font-weight: 750; letter-spacing: -.5px; }
+    .brand span { color: var(--green); }
+    .nav-link { color: var(--muted); font-size: 14px; }
+    .hero { padding: 100px 0 80px; }
+    .eyebrow {
+      display: inline-block;
+      color: var(--green);
+      border: 1px solid #3c5730;
+      border-radius: 99px;
+      padding: 5px 12px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    h1 { font-size: clamp(42px, 7vw, 76px); line-height: 1.05; letter-spacing: -3px; margin: 25px 0; max-width: 850px; }
+    h1 span { color: var(--green); }
+    .intro { color: var(--muted); font-size: 19px; max-width: 680px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .button { display: inline-block; border-radius: 8px; padding: 12px 18px; font-weight: 650; font-size: 14px; }
+    .primary { background: var(--green); color: #10150c; }
+    .secondary { border: 1px solid var(--border); background: var(--panel); }
+    section { padding: 65px 0; border-top: 1px solid var(--border); }
+    h2 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -1px; margin: 0 0 12px; }
+    .section-intro { color: var(--muted); max-width: 650px; margin-bottom: 30px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 24px; }
+    .number { color: var(--green); font-size: 13px; font-weight: 700; }
+    h3 { margin: 8px 0; font-size: 19px; }
+    .card p, .muted { color: var(--muted); margin-bottom: 0; }
+    .code {
+      margin-top: 25px;
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #080a0c;
+      overflow-x: auto;
+      color: var(--green);
+      font: 13px/1.9 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .roadmap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    footer { border-top: 1px solid var(--border); padding: 30px 0; color: var(--muted); font-size: 13px; }
+    @media (max-width: 650px) {
+      .hero { padding: 65px 0; }
+      h1 { letter-spacing: -1.5px; }
+      .grid, .roadmap { grid-template-columns: 1fr; }
+      nav { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="container">
+      <a class="brand" href="#">SAILS<span> / TOOLKIT</span></a>
+      <a class="nav-link" href="#features">Features</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" style="border-top:0">
+      <div class="container">
+        <span class="eyebrow">Open-source developer tooling</span>
+        <h1>Build Sails smart contracts <span>with confidence.</span></h1>
+        <p class="intro">
+          Sails Developer Toolkit is an early-stage VS Code extension concept
+          designed to make developing Rust-based smart contracts for the Vara
+          ecosystem more convenient.
+        </p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/arkumta/sails-developer-toolkit-2">Explore on GitHub ↗</a>
+          <a class="button secondary" href="#features">Explore the toolkit</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <h2>Developer workflow, simplified.</h2>
+        <p class="section-intro">
+          The current prototype focuses on basic project discovery, starter
+          code, build checks and simple diagnostics.
+        </p>
+        <div class="grid">
+          <article class="card">
+            <span class="number">01 / DISCOVER</span>
+            <h3>Sails project detection</h3>
+            <p>Scan Rust project manifests for Sails-related dependencies and source files.</p>
+          </article>
+          <article class="card">
+            <span class="number">02 / START</span>
+            <h3>Service template</h3>
+            <p>Insert a starter service template into the editor to help begin a contract project.</p>
+          </article>
+          <article class="card">
+            <span class="number">03 / BUILD</span>
+            <h3>Build checks</h3>
+            <p>Run Cargo checks from the editor workflow and review compiler output.</p>
+          </article>
+          <article class="card">
+            <span class="number">04 / INSPECT</span>
+            <h3>Basic diagnostics</h3>
+            <p>Check for common project structure and Sails macro indicators. This is not a security audit.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2>Built for the Vara ecosystem.</h2>
+        <p class="section-intro">
+          Our goal is to reduce friction for developers building with Rust and
+          Sails. The toolkit is a work in progress, and the next milestone is
+          reliable extension loading and end-to-end command testing.
+        </p>
+        <div class="code">
+          &gt; Detect a Sails project<br>
+          &gt; Insert a service template<br>
+          &gt; Run cargo check<br>
+          &gt; Inspect basic project diagnostics<br>
+          <br>
+          STATUS: EARLY PROTOTYPE — TESTING IN PROGRESS
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2>What's next?</h2>
+        <p class="section-intro">The roadmap will evolve as the prototype is tested with Sails developers.</p>
+        <div class="roadmap">
+          <article class="card">
+            <span class="number">MILESTONE 01</span>
+            <h3>Stabilize</h3>
+            <p>Fix extension loading and validate the current commands.</p>
+          </article>
+          <article class="card">
+            <span class="number">MILESTONE 02</span>
+            <h3>Improve</h3>
+            <p>Expand diagnostics, error guidance and developer documentation.</p>
+          </article>
+          <article class="card">
+            <span class="number">MILESTONE 03</span>
+            <h3>Release</h3>
+            <p>Prepare a tested release and gather early developer feedback.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <h2>Help shape the toolkit.</h2>
+        <p class="section-intro">
+          Explore the code, follow development and share feedback through the public repository.
+        </p>
+        <a class="button primary" href="https://github.com/arkumta/sails-developer-toolkit-2">View the GitHub repository ↗</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      Sails Developer Toolkit · Open-source project in development
+    </div>
+  </footer>
+</body>
+</html>
