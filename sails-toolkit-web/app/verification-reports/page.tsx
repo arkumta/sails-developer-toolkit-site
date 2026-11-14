@@ -1,12 +1,25 @@
-
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+
+type Status = "PASS" | "WARN" | "FAIL";
 
 type Check = {
   title: string;
-  status: "PASS" | "WARN" | "FAIL";
+  status: Status;
   detail: string;
+};
+
+type CargoResult = {
+  command: string;
+  status: Status;
+  exitCode: number | null;
+  durationMs: number;
+  stdout: string;
+  stderr: string;
+  timedOut: boolean;
+  generatedAt: string;
 };
 
 type Report = {
@@ -16,6 +29,7 @@ type Report = {
   files?: { name: string; size: number }[];
   summary?: { pass: number; warnings: number; fail: number };
   checks?: Check[];
+  cargoResults?: CargoResult[];
   limitations?: string;
 };
 
@@ -34,6 +48,16 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function statusClass(status: Status) {
+  if (status === "PASS") {
+    return "border-[#3c5730] text-[#a8f56a]";
+  }
+  if (status === "WARN") {
+    return "border-amber-800 text-amber-300";
+  }
+  return "border-red-900 text-red-300";
+}
+
 export default function VerificationReportsPage() {
   const [report, setReport] = useState<Report | null>(null);
   const [ready, setReady] = useState(false);
@@ -41,7 +65,9 @@ export default function VerificationReportsPage() {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("sails-toolkit-verification-report");
+      const saved = localStorage.getItem(
+        "sails-toolkit-verification-report",
+      );
 
       if (saved) {
         const parsed: unknown = JSON.parse(saved);
@@ -52,6 +78,7 @@ export default function VerificationReportsPage() {
           "checks" in parsed &&
           Array.isArray(parsed.checks)
         ) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setReport(parsed as Report);
         } else {
           setError("The saved report has an unexpected format.");
@@ -82,6 +109,8 @@ export default function VerificationReportsPage() {
   function downloadMarkdown() {
     if (!report) return;
 
+    const cargoResults = report.cargoResults ?? [];
+
     const lines = [
       "# Sails Developer Toolkit — Verification Report",
       "",
@@ -101,7 +130,7 @@ export default function VerificationReportsPage() {
           )
         : ["- No file details recorded."]),
       "",
-      "## Checks",
+      "## Browser checks",
       "",
       ...(report.checks ?? []).flatMap((check) => [
         `### ${check.status}: ${check.title}`,
@@ -109,6 +138,31 @@ export default function VerificationReportsPage() {
         check.detail,
         "",
       ]),
+      "## Local Cargo execution",
+      "",
+      ...(cargoResults.length
+        ? cargoResults.flatMap((result) => [
+            `### ${result.status}: ${result.command}`,
+            "",
+            `- Exit code: ${result.exitCode ?? "N/A"}`,
+            `- Duration: ${(result.durationMs / 1000).toFixed(2)} seconds`,
+            `- Timed out: ${result.timedOut ? "Yes" : "No"}`,
+            `- Generated: ${formatDate(result.generatedAt)}`,
+            "",
+            "#### Standard output",
+            "",
+            "```text",
+            result.stdout || "(No standard output)",
+            "```",
+            "",
+            "#### Compiler / test output",
+            "",
+            "```text",
+            result.stderr || "(No error output)",
+            "```",
+            "",
+          ])
+        : ["No local Cargo commands were recorded.", ""]),
       "## Limitations",
       "",
       report.limitations ?? "See individual check descriptions.",
@@ -127,24 +181,37 @@ export default function VerificationReportsPage() {
     URL.revokeObjectURL(url);
   }
 
-  const checks = report?.checks ?? [];
-  const pass = checks.filter((check) => check.status === "PASS").length;
-  const warnings = checks.filter((check) => check.status === "WARN").length;
-  const fail = checks.filter((check) => check.status === "FAIL").length;
+  const checks = (report?.checks ?? []).filter(
+    (check) =>
+      !["cargo check", "cargo test"].includes(check.title.toLowerCase()),
+  );
+  const cargoResults = report?.cargoResults ?? [];
+
+  const pass =
+    checks.filter((check) => check.status === "PASS").length +
+    cargoResults.filter((result) => result.status === "PASS").length;
+
+  const warnings =
+    checks.filter((check) => check.status === "WARN").length +
+    cargoResults.filter((result) => result.status === "WARN").length;
+
+  const fail =
+    checks.filter((check) => check.status === "FAIL").length +
+    cargoResults.filter((result) => result.status === "FAIL").length;
 
   return (
     <main className="min-h-screen bg-[#0b0d10] text-[#f3f5f7]">
       <header className="border-b border-[#29313b]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-          <a href="/" className="font-bold tracking-tight">
+          <Link href="/" className="font-bold tracking-tight">
             SAILS <span className="text-[#a8f56a]">/ TOOLKIT</span>
-          </a>
-          <a
+          </Link>
+          <Link
             href="/"
             className="text-sm text-[#a1aab7] hover:text-[#a8f56a]"
           >
             ← Dashboard
-          </a>
+          </Link>
         </div>
       </header>
 
@@ -159,8 +226,8 @@ export default function VerificationReportsPage() {
               Verification Reports
             </h1>
             <p className="mt-4 max-w-2xl leading-7 text-[#a1aab7]">
-              Review the latest Project Integrity Checker results and export a
-              report for your records.
+              Review Project Integrity Checker results, including actual
+              local Cargo build and test output.
             </p>
           </div>
 
@@ -212,14 +279,14 @@ export default function VerificationReportsPage() {
                     Latest saved report
                   </p>
                   <h2 className="mt-2 text-2xl font-bold">
-                    Project Integrity Report
+                    {report.reportType || "Project Integrity Report"}
                   </h2>
                   <p className="mt-2 text-sm text-[#a1aab7]">
                     Generated {formatDate(report.generatedAt)}
                   </p>
                 </div>
                 <span className="rounded-full border border-[#29313b] px-3 py-2 text-xs text-[#a1aab7]">
-                  Browser report
+                  Browser + local runner report
                 </span>
               </div>
 
@@ -271,13 +338,9 @@ export default function VerificationReportsPage() {
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <h3 className="font-semibold">{check.title}</h3>
                       <span
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${
-                          check.status === "PASS"
-                            ? "border-[#3c5730] text-[#a8f56a]"
-                            : check.status === "WARN"
-                              ? "border-amber-800 text-amber-300"
-                              : "border-red-900 text-red-300"
-                        }`}
+                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(
+                          check.status,
+                        )}`}
                       >
                         {check.status}
                       </span>
@@ -288,6 +351,98 @@ export default function VerificationReportsPage() {
                   </article>
                 ))}
               </div>
+            </section>
+
+            <section className="mt-8">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-2xl font-bold">
+                  Real Cargo execution results
+                </h2>
+                <span className="text-sm text-[#a1aab7]">
+                  {cargoResults.length} command(s)
+                </span>
+              </div>
+
+              {cargoResults.length === 0 ? (
+                <div className="mt-4 rounded-xl border border-[#29313b] bg-[#12161c] p-6">
+                  <p className="text-sm text-[#a1aab7]">
+                    No local Cargo command results were saved with this
+                    report. Connect the local runner and execute both
+                    commands in Project Integrity Checker.
+                  </p>
+                  <a
+                    href="/project-integrity"
+                    className="mt-4 inline-flex rounded-lg bg-[#a8f56a] px-5 py-3 text-sm font-semibold text-[#10150c] hover:bg-[#bcff8b]"
+                  >
+                    Run Cargo verification →
+                  </a>
+                </div>
+              ) : (
+                <div className="mt-4 space-y-4">
+                  {cargoResults.map((result) => (
+                    <article
+                      key={result.command}
+                      className="rounded-xl border border-[#29313b] bg-[#12161c] p-5"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <h3 className="font-semibold">{result.command}</h3>
+                        <span
+                          className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusClass(
+                            result.status,
+                          )}`}
+                        >
+                          {result.status}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[#a1aab7]">
+                        <span>
+                          Exit code: {result.exitCode ?? "N/A"}
+                        </span>
+                        <span>
+                          Duration:{" "}
+                          {(result.durationMs / 1000).toFixed(2)}s
+                        </span>
+                        <span>
+                          {result.timedOut ? "Timed out" : "Completed"}
+                        </span>
+                      </div>
+
+                      <p className="mt-2 text-xs text-[#7e8997]">
+                        Generated {formatDate(result.generatedAt)}
+                      </p>
+
+                      {result.stdout && (
+                        <div className="mt-4">
+                          <p className="mb-2 text-xs uppercase tracking-widest text-[#a1aab7]">
+                            Standard output
+                          </p>
+                          <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-[#29313b] bg-[#0b0d10] p-4 font-mono text-xs leading-6">
+                            {result.stdout}
+                          </pre>
+                        </div>
+                      )}
+
+                      {result.stderr && (
+                        <div className="mt-4">
+                          <p className="mb-2 text-xs uppercase tracking-widest text-[#a1aab7]">
+                            Compiler / test output
+                          </p>
+                          <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-[#29313b] bg-[#0b0d10] p-4 font-mono text-xs leading-6 text-red-200">
+                            {result.stderr}
+                          </pre>
+                        </div>
+                      )}
+
+                      {!result.stdout && !result.stderr && (
+                        <p className="mt-4 text-sm text-[#a1aab7]">
+                          The command produced no output.
+                        </p>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="mt-8 rounded-xl border border-[#29313b] bg-[#12161c] p-6">
@@ -325,7 +480,9 @@ export default function VerificationReportsPage() {
 
             <button
               onClick={() => {
-                localStorage.removeItem("sails-toolkit-verification-report");
+                localStorage.removeItem(
+                  "sails-toolkit-verification-report",
+                );
                 setReport(null);
               }}
               className="mt-6 text-sm text-[#a1aab7] hover:text-red-300"
