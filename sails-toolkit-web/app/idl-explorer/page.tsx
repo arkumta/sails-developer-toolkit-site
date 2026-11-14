@@ -35,7 +35,7 @@ export default function IDLExplorer() {
     [parsed, selected],
   );
 
-  function inspectIDL() {
+  async function inspectIDL() {
     setError("");
     setParsed(null);
 
@@ -45,7 +45,7 @@ export default function IDLExplorer() {
     }
 
     try {
-      const result = parseSailsIDL(input);
+      const result = await parseSailsIDL(input);
 
       // Normalize parser output so missing fields cannot crash the UI.
       const normalized: ParsedIDL = {
